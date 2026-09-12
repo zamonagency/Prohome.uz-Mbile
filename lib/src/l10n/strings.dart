@@ -62,6 +62,8 @@ class AppStrings {
     'home.sec_recommended': {AppLang.uz: 'Siz uchun tavsiya', AppLang.ru: 'Рекомендуем вам', AppLang.en: 'Recommended for you'},
     'home.sec_recent': {AppLang.uz: 'Oxirgi ko‘rilganlar', AppLang.ru: 'Недавно просмотренные', AppLang.en: 'Recently viewed'},
     'home.sec_nearby': {AppLang.uz: 'Yaqin atrofingizda', AppLang.ru: 'Рядом с вами', AppLang.en: 'Near you'},
+    'home.sec_similar_estates': {AppLang.uz: 'O‘xshash e’lonlar', AppLang.ru: 'Похожие объявления', AppLang.en: 'Similar listings'},
+    'home.sec_similar_masters': {AppLang.uz: 'O‘xshash ustalar', AppLang.ru: 'Похожие мастера', AppLang.en: 'Similar pros'},
     'home.sec_fresh_estates': {AppLang.uz: 'Yangi e’lonlar', AppLang.ru: 'Свежие объявления', AppLang.en: 'Fresh listings'},
     'home.sec_new_builds': {AppLang.uz: 'Yangi binolar', AppLang.ru: 'Новостройки', AppLang.en: 'New builds'},
     'home.sec_top_masters': {AppLang.uz: 'Top ustalar', AppLang.ru: 'Лучшие мастера', AppLang.en: 'Top pros'},
@@ -123,6 +125,7 @@ class AppStrings {
     // ── Masters ──────────────────────────────────────────────────────────
     'master.experience': {AppLang.uz: 'yil tajriba', AppLang.ru: 'лет опыта', AppLang.en: 'yrs exp.'},
     'master.free_now': {AppLang.uz: 'Hozir bo‘sh', AppLang.ru: 'Свободен', AppLang.en: 'Available'},
+    'master.team': {AppLang.uz: 'Jamoa (brigada)', AppLang.ru: 'Бригада', AppLang.en: 'Team'},
     'master.busy': {AppLang.uz: 'Band', AppLang.ru: 'Занят', AppLang.en: 'Busy'},
     'master.portfolio': {AppLang.uz: 'Ishlari', AppLang.ru: 'Работы', AppLang.en: 'Portfolio'},
     'master.reviews': {AppLang.uz: 'Sharhlar', AppLang.ru: 'Отзывы', AppLang.en: 'Reviews'},

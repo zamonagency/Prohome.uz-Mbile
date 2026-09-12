@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../common/models/paginated.dart';
 import '../../core/network/api_client.dart';
 import '../../core/providers.dart';
-import '../realestate/real_estate_repository.dart' show GeoBounds;
+import '../realestate/real_estate_repository.dart' show GeoBounds, GeoPoint;
 import 'job_model.dart';
 
 class JobRepository {
@@ -16,6 +16,7 @@ class JobRepository {
     String? search,
     int? skillTypeId,
     GeoBounds? bbox,
+    GeoPoint? near,
   }) async {
     final res = await _api.get('/jobs', query: {
       'page': page,
@@ -23,6 +24,7 @@ class JobRepository {
       if (search?.isNotEmpty ?? false) 'search': search,
       if (skillTypeId != null) 'skillTypeId': skillTypeId,
       if (bbox != null) ...bbox.toQuery(),
+      if (near != null) ...near.toQuery(),
     });
     return Paginated.parse(res, Job.fromJson);
   }

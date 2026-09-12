@@ -20,6 +20,7 @@ class RealEstateFilter {
     this.sort,
     this.userId,
     this.bbox,
+    this.near,
   });
 
   final String? search;
@@ -34,6 +35,10 @@ class RealEstateFilter {
   final int? userId;
   /// Xarita/yaqin atrofdagi e'lonlar uchun bounding box.
   final GeoBounds? bbox;
+  /// Berilsa — ro'yxat shu nuqtaga eng yaqinidan boshlab qaytadi
+  /// (`lat`/`lng`, backendda Haversine masofa bo'yicha saralanadi).
+  /// `bbox` bilan birga ham ishlatsa bo'ladi.
+  final GeoPoint? near;
 
   Map<String, dynamic> toQuery() => {
         if (search?.isNotEmpty ?? false) 'search': search,
@@ -46,6 +51,7 @@ class RealEstateFilter {
         if (sort != null) 'sort': sort,
         if (userId != null) 'userId': userId,
         if (bbox != null) ...bbox!.toQuery(),
+        if (near != null) ...near!.toQuery(),
       };
 
   RealEstateFilter copyWith({
@@ -59,6 +65,7 @@ class RealEstateFilter {
     String? sort,
     Object? userId = _sentinel,
     Object? bbox = _sentinel,
+    Object? near = _sentinel,
   }) {
     return RealEstateFilter(
       search: search ?? this.search,
@@ -72,6 +79,7 @@ class RealEstateFilter {
       sort: sort ?? this.sort,
       userId: userId == _sentinel ? this.userId : userId as int?,
       bbox: bbox == _sentinel ? this.bbox : bbox as GeoBounds?,
+      near: near == _sentinel ? this.near : near as GeoPoint?,
     );
   }
 
@@ -119,6 +127,16 @@ class GeoBounds {
         'neLat': neLat,
         'neLng': neLng,
       };
+}
+
+/// "Yaqinimdagilar" — berilsa backend natijalarni shu nuqtadan eng
+/// yaqinidan boshlab (Haversine masofa) qaytaradi.
+class GeoPoint {
+  const GeoPoint(this.lat, this.lng);
+  final double lat;
+  final double lng;
+
+  Map<String, dynamic> toQuery() => {'lat': lat, 'lng': lng};
 }
 
 class RealEstateRepository {

@@ -47,6 +47,7 @@ class RealEstate {
     this.user,
     this.media = const [],
     this.createdAt,
+    this.similar = const [],
   });
 
   final int id;
@@ -73,6 +74,9 @@ class RealEstate {
   final AppUser? user;
   final List<PropertyMedia> media;
   final String? createdAt;
+  /// Shu e'longa o'xshash (bir xil toifa/bitim turi, imkon qadar bir xil
+  /// joylashuvdan) e'lonlar — detail javobida allaqachon kelib turadi.
+  final List<RealEstate> similar;
 
   bool get isRent => dealType == 'RENT';
   bool get hasGeo => latitude != null && longitude != null;
@@ -124,5 +128,9 @@ class RealEstate {
             .map((e) => PropertyMedia.fromJson(Map<String, dynamic>.from(e)))
             .toList(),
         createdAt: j['createdAt']?.toString(),
+        similar: (j['similar'] is List ? j['similar'] as List : const [])
+            .whereType<Map>()
+            .map((e) => RealEstate.fromJson(Map<String, dynamic>.from(e)))
+            .toList(),
       );
 }

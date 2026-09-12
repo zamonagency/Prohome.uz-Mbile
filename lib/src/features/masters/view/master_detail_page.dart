@@ -21,6 +21,7 @@ import '../../favorites/favorites_controller.dart';
 import '../../home/recently_viewed_controller.dart';
 import '../master_model.dart';
 import '../master_repository.dart';
+import '../widgets/master_card.dart';
 
 class MasterDetailPage extends ConsumerWidget {
   const MasterDetailPage({super.key, required this.id});
@@ -76,7 +77,10 @@ class _Body extends ConsumerWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(18),
-              child: AppNetworkImage(raw: master.avatar, width: 88, height: 88),
+              child: master.hasAvatar
+                  ? AppNetworkImage(raw: master.avatar, width: 88, height: 88)
+                  : Image.asset(master.defaultAvatarAsset,
+                      width: 88, height: 88, fit: BoxFit.cover),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -221,6 +225,18 @@ class _Body extends ConsumerWidget {
                   ],
                 ),
               )),
+        ],
+        if (master.similar.isNotEmpty) ...[
+          const SizedBox(height: 18),
+          Text(s('home.sec_similar_masters'), style: context.texts.titleMedium),
+          const SizedBox(height: 8),
+          HScroller(
+            height: 220,
+            itemWidth: 150,
+            itemCount: master.similar.length,
+            padding: EdgeInsets.zero,
+            itemBuilder: (_, i) => MasterGridCard(master: master.similar[i]),
+          ),
         ],
       ],
     );

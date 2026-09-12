@@ -29,7 +29,10 @@ final currentPositionProvider = FutureProvider<Position?>((ref) async {
   }
 });
 
-/// Joylashuv ma'lum bo'lsa — shu atrofdagi (taxminan 15km) e'lonlar.
+/// Joylashuv ma'lum bo'lsa — shu atrofdagi (taxminan 15km, `bbox`) va
+/// ENG YAQINIDAN boshlab saralangan (`near` — lat/lng, backendda
+/// Haversine masofa bo'yicha) e'lonlar. Ikkalasi birga: uzoqroqqa
+/// chegara qo'yiladi, ichida esa haqiqiy masofa bo'yicha tartiblanadi.
 final nearbyEstatesProvider = FutureProvider<List<RealEstate>>((ref) async {
   final pos = await ref.watch(currentPositionProvider.future);
   if (pos == null) return const [];
@@ -38,6 +41,7 @@ final nearbyEstatesProvider = FutureProvider<List<RealEstate>>((ref) async {
           limit: 10,
           filter: RealEstateFilter(
             bbox: GeoBounds.aroundKm(pos.latitude, pos.longitude, 15),
+            near: GeoPoint(pos.latitude, pos.longitude),
           ),
         );
     return res.items;

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/settings_controller.dart';
 import '../../../app/theme.dart';
 import '../../../common/widgets/paged_list.dart';
+import '../master_model.dart';
 import '../master_repository.dart';
 import '../widgets/master_card.dart';
 
@@ -18,6 +19,7 @@ class _MastersPageState extends ConsumerState<MastersPage> {
   final _search = TextEditingController();
   int? _skillTypeId;
   bool _onlyFree = false;
+  MasterWorkType? _workType;
   String _query = '';
   bool _grid = true;
 
@@ -77,6 +79,21 @@ class _MastersPageState extends ConsumerState<MastersPage> {
                         fontWeight: FontWeight.w600),
                   ),
                 ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: FilterChip(
+                    label: Text(s('master.team')),
+                    selected: _workType == MasterWorkType.team,
+                    onSelected: (v) => setState(
+                        () => _workType = v ? MasterWorkType.team : null),
+                    selectedColor: AppColors.primary,
+                    showCheckmark: false,
+                    labelStyle: TextStyle(
+                        color: _workType == MasterWorkType.team ? Colors.white : null,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600),
+                  ),
+                ),
                 ...skillTypes.maybeWhen(
                   data: (list) => list
                       .map((t) => Padding(
@@ -105,17 +122,18 @@ class _MastersPageState extends ConsumerState<MastersPage> {
           const SizedBox(height: 6),
           Expanded(
             child: AppPagedList(
-              key: ValueKey('$_query$_skillTypeId$_onlyFree'),
+              key: ValueKey('$_query$_skillTypeId$_onlyFree$_workType'),
               fetch: (page) => ref.read(masterRepositoryProvider).list(
                     page: page,
                     search: _query.isEmpty ? null : _query,
                     skillTypeId: _skillTypeId,
                     onlyFree: _onlyFree,
+                    workType: _workType,
                   ),
               gridDelegate: _grid
                   ? const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
-                      childAspectRatio: 0.62,
+                      childAspectRatio: 0.56,
                       mainAxisSpacing: 14,
                       crossAxisSpacing: 14,
                     )

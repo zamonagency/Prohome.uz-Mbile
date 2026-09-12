@@ -15,6 +15,7 @@ class MasterRepository {
     String? search,
     int? skillTypeId,
     bool? onlyFree,
+    MasterWorkType? workType,
   }) async {
     final res = await _api.get('/masters', query: {
       'page': page,
@@ -22,6 +23,7 @@ class MasterRepository {
       if (search?.isNotEmpty ?? false) 'search': search,
       if (skillTypeId != null) 'skillTypeId': skillTypeId,
       if (onlyFree == true) 'isFree': true,
+      if (workType != null) 'workType': workType.isTeam ? 'TEAM' : 'INDIVIDUAL',
     });
     return Paginated.parse(res, Master.fromJson);
   }

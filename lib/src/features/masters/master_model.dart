@@ -46,6 +46,16 @@ class MasterRating {
   }
 }
 
+/// Usta yakka o'zi ishlaydimi yoki jamoa (brigada) bo'lib — backend
+/// standarti: yo'q bo'lsa `INDIVIDUAL` deb qaraladi.
+enum MasterWorkType { individual, team }
+
+extension MasterWorkTypeX on MasterWorkType {
+  bool get isTeam => this == MasterWorkType.team;
+  static MasterWorkType fromApi(String? v) =>
+      v == 'TEAM' ? MasterWorkType.team : MasterWorkType.individual;
+}
+
 class Master {
   const Master({
     required this.id,
@@ -59,9 +69,11 @@ class Master {
     this.isFree = false,
     this.likeCount = 0,
     this.viewCount = 0,
+    this.workType = MasterWorkType.individual,
     this.user,
     this.skills = const [],
     this.ratings = const [],
+    this.similar = const [],
   });
 
   final int id;
@@ -75,15 +87,26 @@ class Master {
   final bool isFree;
   final int likeCount;
   final int viewCount;
+  final MasterWorkType workType;
   final AppUser? user;
   final List<MasterSkill> skills;
   final List<MasterRating> ratings;
+  /// Shu ustaga o'xshash (bir xil kasb turi/joylashuv bo'yicha) ustalar —
+  /// detail javobida allaqachon kelib turadi, alohida so'rov shart emas.
+  final List<Master> similar;
 
   String get name => user?.fullName ?? 'Usta';
-  String get avatar => mediaUrl(profileImg ?? user?.profileImg);
-  List<String> get portfolio => workImgs.map(mediaUrl).toList();
   String get phone => user?.phone ?? '';
   String get primarySkill => skills.isNotEmpty ? skills.first.name : 'Usta';
+
+  /// Rasm bo'lmasa — jamoa/yakka holatga mos, o'zimiz chizdirgan surat.
+  String get avatar => mediaUrl(profileImg ?? user?.profileImg);
+  bool get hasAvatar => avatar.isNotEmpty;
+  String get defaultAvatarAsset => workType.isTeam
+      ? 'assets/images/master_team.jpg'
+      : 'assets/images/master_alone.png';
+
+  List<String> get portfolio => workImgs.map(mediaUrl).toList();
 
   double get avgRating {
     if (ratings.isEmpty) return 0;
@@ -103,6 +126,7 @@ class Master {
         isFree: asBool(j['isFree']),
         likeCount: asInt(j['likeCount']) ?? 0,
         viewCount: asInt(j['viewCount']) ?? 0,
+        workType: MasterWorkTypeX.fromApi(j['workType']?.toString()),
         user: j['user'] is Map
             ? AppUser.fromJson(Map<String, dynamic>.from(j['user']))
             : null,
@@ -113,6 +137,10 @@ class Master {
         ratings: (j['ratings'] is List ? j['ratings'] as List : const [])
             .whereType<Map>()
             .map((e) => MasterRating.fromJson(Map<String, dynamic>.from(e)))
+            .toList(),
+        similar: (j['similar'] is List ? j['similar'] as List : const [])
+            .whereType<Map>()
+            .map((e) => Master.fromJson(Map<String, dynamic>.from(e)))
             .toList(),
       );
 }

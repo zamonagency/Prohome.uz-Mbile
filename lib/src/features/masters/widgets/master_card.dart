@@ -12,6 +12,10 @@ import '../../favorites/favorites_controller.dart';
 import '../master_model.dart';
 
 Widget _avatar(Master master, {double? width, double? height}) {
+  if (!master.hasAvatar) {
+    return Image.asset(master.defaultAvatarAsset,
+        width: width, height: height, fit: BoxFit.cover);
+  }
   return AppNetworkImage(raw: master.avatar, width: width, height: height);
 }
 
@@ -64,17 +68,23 @@ class MasterCard extends ConsumerWidget {
                       style: const TextStyle(
                           color: AppColors.primary, fontSize: 12.5)),
                   const SizedBox(height: 6),
-                  Row(
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
+                    runSpacing: 4,
                     children: [
-                      if (master.experience > 0) ...[
-                        Icon(Icons.workspace_premium_outlined,
-                            size: 13, color: context.muted),
-                        const SizedBox(width: 3),
-                        Text('${master.experience} ${s('master.experience')}',
-                            style:
-                                TextStyle(fontSize: 11.5, color: context.muted)),
-                        const SizedBox(width: 10),
-                      ],
+                      if (master.experience > 0)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.workspace_premium_outlined,
+                                size: 13, color: context.muted),
+                            const SizedBox(width: 3),
+                            Text('${master.experience} ${s('master.experience')}',
+                                style: TextStyle(
+                                    fontSize: 11.5, color: context.muted)),
+                          ],
+                        ),
                       Pill(
                         label: master.isFree
                             ? s('master.free_now')
@@ -84,6 +94,12 @@ class MasterCard extends ConsumerWidget {
                             : context.muted,
                         dense: true,
                       ),
+                      if (master.workType.isTeam)
+                        Pill(
+                          label: s('master.team'),
+                          icon: Icons.groups_rounded,
+                          dense: true,
+                        ),
                     ],
                   ),
                   const SizedBox(height: 6),
@@ -174,10 +190,22 @@ class MasterGridCard extends ConsumerWidget {
                       style: const TextStyle(
                           color: AppColors.primary, fontSize: 11.5)),
                   const SizedBox(height: 6),
-                  Pill(
-                    label: master.isFree ? s('master.free_now') : s('master.busy'),
-                    color: master.isFree ? AppColors.success : context.muted,
-                    dense: true,
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      Pill(
+                        label: master.isFree ? s('master.free_now') : s('master.busy'),
+                        color: master.isFree ? AppColors.success : context.muted,
+                        dense: true,
+                      ),
+                      if (master.workType.isTeam)
+                        Pill(
+                          label: s('master.team'),
+                          icon: Icons.groups_rounded,
+                          dense: true,
+                        ),
+                    ],
                   ),
                   const SizedBox(height: 6),
                   StatCounters(

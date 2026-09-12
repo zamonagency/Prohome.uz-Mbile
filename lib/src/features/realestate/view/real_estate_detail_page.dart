@@ -156,6 +156,18 @@ class _Content extends ConsumerWidget {
                             ?.copyWith(color: context.muted)),
                   ],
                 ),
+                if (item.similar.isNotEmpty) ...[
+                  const SizedBox(height: 20),
+                  Text(s('home.sec_similar_estates'), style: context.texts.titleMedium),
+                  const SizedBox(height: 8),
+                  HScroller(
+                    height: 236,
+                    itemWidth: 172,
+                    itemCount: item.similar.length,
+                    padding: EdgeInsets.zero,
+                    itemBuilder: (_, i) => RealEstateMiniCard(item: item.similar[i]),
+                  ),
+                ],
               ],
             ),
           ),

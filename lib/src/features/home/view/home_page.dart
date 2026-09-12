@@ -150,7 +150,7 @@ class HomePage extends ConsumerWidget {
         ),
         SliverToBoxAdapter(
           child: HScroller(
-            height: 240,
+            height: 262,
             itemWidth: 150,
             itemCount: data.topMasters.length,
             itemBuilder: (_, i) => MasterGridCard(master: data.topMasters[i]),
