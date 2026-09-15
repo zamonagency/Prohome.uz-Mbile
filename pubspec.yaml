@@ -53,8 +53,13 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  # DIQQAT: Flutter'da bitta papkani ro'yxatga qo'shish ICHIDAGI
+  # papkalarni AVTOMATIK qamrab olmaydi — shu sabab
+  # assets/images/regions/ alohida yozilishi shart edi (yozilmagani
+  # uchun "Unable to load asset" xatosi chiqqan edi).
   assets:
     - assets/images/
+    - assets/images/regions/
 
 # `dart run flutter_launcher_icons` bilan ishlatiladi — natija to'g'ridan
 # -to'g'ri android/ (va bo'lsa ios/) native rasm papkalariga yoziladi,

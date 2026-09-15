@@ -127,7 +127,7 @@ class _Body extends ConsumerWidget {
           children: [
             _stat(context, '${master.experience}', s('master.experience')),
             _stat(context, compactPrice(master.viewCount), s('estate.views')),
-            _stat(context, '${master.likeCount}', '❤'),
+            _stat(context, '${master.likeCount}', s('estate.likes')),
           ],
         ),
         if (master.salary != null && master.salary! > 0) ...[

@@ -41,10 +41,13 @@ class ProfilePage extends ConsumerWidget {
                       ? NetworkImage(mediaUrl(user!.profileImg))
                       : null,
                   child: (user?.profileImg ?? '').isEmpty
-                      ? Text(user?.initials ?? '👤',
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.primary))
+                      ? (authed && (user?.initials.isNotEmpty ?? false)
+                          ? Text(user!.initials,
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.primary))
+                          : const Icon(Icons.person_rounded,
+                              color: AppColors.primary, size: 30))
                       : null,
                 ),
                 const SizedBox(width: 14),

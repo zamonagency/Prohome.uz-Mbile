@@ -112,6 +112,7 @@ class AppStrings {
     'estate.on_map': {AppLang.uz: 'Xaritada', AppLang.ru: 'На карте', AppLang.en: 'On map'},
     'estate.contact': {AppLang.uz: 'Bog‘lanish', AppLang.ru: 'Контакты', AppLang.en: 'Contact'},
     'estate.views': {AppLang.uz: 'ko‘rish', AppLang.ru: 'просмотров', AppLang.en: 'views'},
+    'estate.likes': {AppLang.uz: 'yoqtirish', AppLang.ru: 'лайков', AppLang.en: 'likes'},
     'estate.add': {AppLang.uz: 'E’lon berish', AppLang.ru: 'Разместить объявление', AppLang.en: 'Post a listing'},
 
     // ── Filter ───────────────────────────────────────────────────────────

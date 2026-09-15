@@ -142,9 +142,11 @@ class StarRating extends StatelessWidget {
   }
 }
 
-/// 2 (yoki ko'p) qatorli, gorizontal skrol qiladigan "javon" — har bir bo'lim
-/// (ko'chmas mulk, ustalar, ishlar...) o'z ichida mustaqil x-o'qi bo'yicha
-/// skrol bo'ladi, sahifaning o'zi esa y-o'qi bo'yicha skrol qiladi.
+/// 2 (yoki ko'p) qatorli "javon" — MUHIM: har bir QATOR o'zining alohida,
+/// mustaqil x-o'qi bo'yicha skroliga ega (bitta qatorni surish
+/// boshqalariga ta'sir qilmaydi) — bitta umumiy grid sifatida emas, balki
+/// bir-biriga bog'liq bo'lmagan bir nechta gorizontal qator sifatida
+/// chiziladi. Sahifaning o'zi esa y-o'qi bo'yicha skrol qiladi.
 class HGridScroller extends StatelessWidget {
   const HGridScroller({
     super.key,
@@ -171,21 +173,33 @@ class HGridScroller extends StatelessWidget {
     // ular ustma-ust "tushib" yarim qatorga o'xshab qolmasin uchun —
     // shunday holatda bitta qatorga tushirib, yonma-yon joylashtiramiz.
     final effectiveRows = itemCount <= rows ? 1 : rows;
-    final height = itemHeight * effectiveRows + spacing * (effectiveRows - 1);
-    return SizedBox(
-      height: height,
-      child: GridView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: padding,
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: effectiveRows,
-          mainAxisSpacing: spacing,
-          crossAxisSpacing: spacing,
-          mainAxisExtent: itemWidth,
-        ),
-        itemCount: itemCount,
-        itemBuilder: itemBuilder,
-      ),
+
+    // Elementlarni qatorlarga navbat bilan (round-robin) taqsimlaymiz —
+    // masalan 8 ta element, 4 qator bo'lsa: 0,4 / 1,5 / 2,6 / 3,7.
+    final rowIndices = List.generate(
+      effectiveRows,
+      (r) => [for (var i = r; i < itemCount; i += effectiveRows) i],
+    );
+
+    return Column(
+      children: [
+        for (var r = 0; r < rowIndices.length; r++) ...[
+          if (r > 0) SizedBox(height: spacing),
+          SizedBox(
+            height: itemHeight,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: padding,
+              itemCount: rowIndices[r].length,
+              separatorBuilder: (_, __) => SizedBox(width: spacing),
+              itemBuilder: (c, i) => SizedBox(
+                width: itemWidth,
+                child: itemBuilder(c, rowIndices[r][i]),
+              ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 }
