@@ -118,6 +118,8 @@ class HomePage extends ConsumerWidget {
         ),
       ],
 
+      // Bo'sh bo'lsa — sarlavhasi ham, o'zi ham UMUMAN ko'rinmaydi (borligi
+      // ham bilinmasin), aynan shunday so'ralgan.
       if (data.freshEstates.isNotEmpty) ...[
         SliverToBoxAdapter(
           child: SectionHeader(
@@ -137,9 +139,28 @@ class HomePage extends ConsumerWidget {
         ),
       ],
 
-      // Ustalar odatda kam sonli (top ustalar) bo'lgani uchun grid emas,
-      // bitta qatorli — aks holda 1-2 ta karta yonma-yon emas, ustma-ust
-      // "tushib" qolib, chala qatorga o'xshab ko'rinardi.
+      if (data.rentEstates.isNotEmpty) ...[
+        SliverToBoxAdapter(
+          child: SectionHeader(
+            title: s('home.sec_rent'),
+            seeAllLabel: s('common.view_all'),
+            onSeeAll: () => context.push('${Routes.estates}?dealType=RENT'),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: HGridScroller(
+            rows: 4,
+            itemWidth: 172,
+            itemHeight: 250,
+            itemCount: data.rentEstates.length,
+            itemBuilder: (_, i) => RealEstateMiniCard(item: data.rentEstates[i]),
+          ),
+        ),
+      ],
+
+      // HGridScroller o'zi kam element bo'lsa (masalan 1-2 ta usta) bitta
+      // qatorga tushirib, yonma-yon joylashtiradi — "chala qator" bo'lib
+      // qolmaydi (bu allaqachon HGridScroller ichida hal qilingan).
       if (data.topMasters.isNotEmpty) ...[
         SliverToBoxAdapter(
           child: SectionHeader(
@@ -149,9 +170,10 @@ class HomePage extends ConsumerWidget {
           ),
         ),
         SliverToBoxAdapter(
-          child: HScroller(
-            height: 262,
+          child: HGridScroller(
+            rows: 4,
             itemWidth: 150,
+            itemHeight: 262,
             itemCount: data.topMasters.length,
             itemBuilder: (_, i) => MasterGridCard(master: data.topMasters[i]),
           ),

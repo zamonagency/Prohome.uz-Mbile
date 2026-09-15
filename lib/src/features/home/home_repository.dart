@@ -86,6 +86,7 @@ class HomeBundle {
     this.categories = const [],
     this.stats = const HomeStats(),
     this.freshEstates = const [],
+    this.rentEstates = const [],
     this.topMasters = const [],
     this.jobs = const [],
     this.news = const [],
@@ -95,6 +96,8 @@ class HomeBundle {
   final List<HomeCategory> categories;
   final HomeStats stats;
   final List<RealEstate> freshEstates;
+  /// Faqat ijaraga (RENT) e'lonlar — mavjud bo'lsagina bo'lim ko'rsatiladi.
+  final List<RealEstate> rentEstates;
   final List<Master> topMasters;
   final List<Job> jobs;
   final List<NewsPost> news;
@@ -128,6 +131,10 @@ class HomeRepository {
       _api
           .get('/real-estates', query: {'page': 1, 'limit': 8, 'sort': 'newest'})
           .catchError((_) => const {'data': <dynamic>[]}),
+      _api
+          .get('/real-estates',
+              query: {'page': 1, 'limit': 8, 'dealType': 'RENT', 'sort': 'newest'})
+          .catchError((_) => const {'data': <dynamic>[]}),
       _rawListOf('/masters/top'),
       _api.get('/jobs', query: {'page': 1, 'limit': 6}).catchError((_) => const {'data': <dynamic>[]}),
       _api
@@ -139,9 +146,10 @@ class HomeRepository {
       'categories': results[1],
       'stats': results[2],
       'estates': results[3],
-      'masters': results[4],
-      'jobs': results[5],
-      'news': results[6],
+      'rentEstates': results[4],
+      'masters': results[5],
+      'jobs': results[6],
+      'news': results[7],
     };
   }
 
@@ -163,6 +171,8 @@ class HomeRepository {
         statsRaw is Map ? Map<String, dynamic>.from(statsRaw) : {});
 
     final estates = Paginated.parse(raw['estates'], RealEstate.fromJson).items;
+    final rentEstates =
+        Paginated.parse(raw['rentEstates'], RealEstate.fromJson).items;
 
     final masters = ((raw['masters'] as List?) ?? const [])
         .whereType<Map>()
@@ -177,6 +187,7 @@ class HomeRepository {
       categories: categories,
       stats: stats,
       freshEstates: estates,
+      rentEstates: rentEstates,
       topMasters: masters,
       jobs: jobs,
       news: news,

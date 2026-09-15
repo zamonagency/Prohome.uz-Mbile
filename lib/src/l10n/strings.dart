@@ -65,6 +65,7 @@ class AppStrings {
     'home.sec_similar_estates': {AppLang.uz: 'O‘xshash e’lonlar', AppLang.ru: 'Похожие объявления', AppLang.en: 'Similar listings'},
     'home.sec_similar_masters': {AppLang.uz: 'O‘xshash ustalar', AppLang.ru: 'Похожие мастера', AppLang.en: 'Similar pros'},
     'home.sec_fresh_estates': {AppLang.uz: 'Yangi e’lonlar', AppLang.ru: 'Свежие объявления', AppLang.en: 'Fresh listings'},
+    'home.sec_rent': {AppLang.uz: 'Ijaraga beriladi', AppLang.ru: 'Сдаётся в аренду', AppLang.en: 'For rent'},
     'home.sec_new_builds': {AppLang.uz: 'Yangi binolar', AppLang.ru: 'Новостройки', AppLang.en: 'New builds'},
     'home.sec_top_masters': {AppLang.uz: 'Top ustalar', AppLang.ru: 'Лучшие мастера', AppLang.en: 'Top pros'},
     'home.sec_jobs': {AppLang.uz: 'Ish e’lonlari', AppLang.ru: 'Вакансии', AppLang.en: 'Jobs'},
