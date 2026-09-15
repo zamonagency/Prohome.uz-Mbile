@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "549196001939",
+    "project_id": "prohome-b2c",
+    "storage_bucket": "prohome-b2c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:549196001939:android:b94e17ba272caf8c49d366",
+        "android_client_info": {
+          "package_name": "uz.prohome.prohome_b2c"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDStqNMzo12xqsvEaQp3p9HQDPWPAZ3R1U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +8,7 @@ import '../../app/settings_controller.dart';
 import '../../common/models/user.dart';
 import '../../core/providers.dart';
 import '../masters/master_repository.dart';
+import '../notifications/push_notifications_controller.dart';
 import 'auth_repository.dart';
 
 enum AuthStatus { unknown, authenticated, guest }
@@ -67,6 +69,9 @@ class AuthController extends StateNotifier<AuthState> {
       final fresh = await _repo.me();
       await _cacheUser(fresh);
       state = AuthState(status: AuthStatus.authenticated, user: fresh);
+      // Ilova qayta ochilganda ham (masalan token yangilangan bo'lsa)
+      // qurilma push uchun ro'yxatdan o'tganligiga ishonch hosil qilamiz.
+      unawaited(_ref.read(pushNotificationsControllerProvider).registerToken());
     } catch (_) {
       if (state.user == null) {
         state = const AuthState(status: AuthStatus.guest);
@@ -97,6 +102,8 @@ class AuthController extends StateNotifier<AuthState> {
       user: user ??
           const AppUser(id: 0, firstName: 'Foydalanuvchi'),
     );
+    // Push: shu qurilmani endi shu foydalanuvchiga bog'lab qo'yamiz.
+    unawaited(_ref.read(pushNotificationsControllerProvider).registerToken());
   }
 
   // ── Public API ────────────────────────────────────────────────────────────
@@ -177,6 +184,9 @@ class AuthController extends StateNotifier<AuthState> {
   }
 
   Future<void> logout() async {
+    // Token hali login bo'lgan holatda o'chirilishi kerak — endpoint
+    // auth talab qiladi, shuning uchun tokenStorage tozalanishidan OLDIN.
+    await _ref.read(pushNotificationsControllerProvider).unregisterToken();
     await _ref.read(tokenStorageProvider).clear();
     await _prefs.remove(_kUser);
     state = const AuthState(status: AuthStatus.guest);

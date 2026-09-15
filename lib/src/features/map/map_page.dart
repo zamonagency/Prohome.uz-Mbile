@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../app/settings_controller.dart';
 import '../../app/theme.dart';
-import '../../common/widgets/app_network_image.dart';
 import 'regions_data.dart';
 
 class MapPage extends ConsumerWidget {
@@ -75,7 +74,7 @@ class _RegionCard extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            AppNetworkImage(raw: region.image, fit: BoxFit.cover),
+            Image.asset(region.image, fit: BoxFit.cover),
             const DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(

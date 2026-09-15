@@ -16,6 +16,28 @@ final _notificationsProvider = FutureProvider.autoDispose((ref) async {
   return res.items;
 });
 
+void _openNotification(BuildContext context, WidgetRef ref, AppNotification n) {
+  if (!n.isRead) {
+    ref.read(notificationsRepositoryProvider).markRead(n.id);
+    ref.invalidate(_notificationsProvider);
+    ref.invalidate(unreadCountProvider);
+  }
+  final id = n.entityId;
+  if (id == null) return;
+  switch ((n.entityType ?? '').toLowerCase()) {
+    case 'chat':
+      context.push(Routes.chat(id));
+    case 'realestate':
+    case 'real_estate':
+    case 'real-estate':
+      context.push(Routes.estate(id));
+    case 'master':
+      context.push(Routes.master(id));
+    case 'job':
+      context.push(Routes.job(id));
+  }
+}
+
 class NotificationsPage extends ConsumerWidget {
   const NotificationsPage({super.key});
 
@@ -26,7 +48,20 @@ class NotificationsPage extends ConsumerWidget {
     final async = ref.watch(_notificationsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(s('profile.notifications'))),
+      appBar: AppBar(
+        title: Text(s('profile.notifications')),
+        actions: [
+          if (authed)
+            TextButton(
+              onPressed: () async {
+                await ref.read(notificationsRepositoryProvider).markAllRead();
+                ref.invalidate(_notificationsProvider);
+                ref.invalidate(unreadCountProvider);
+              },
+              child: Text(s('notif.mark_all_read')),
+            ),
+        ],
+      ),
       body: !authed
           ? EmptyView(
               icon: Icons.notifications_none_rounded,
@@ -56,15 +91,7 @@ class NotificationsPage extends ConsumerWidget {
                           final n = list[i];
                           return InkWell(
                             borderRadius: BorderRadius.circular(AppTheme.radius),
-                            onTap: n.isRead
-                                ? null
-                                : () async {
-                                    await ref
-                                        .read(notificationsRepositoryProvider)
-                                        .markRead(n.id);
-                                    ref.invalidate(_notificationsProvider);
-                                    ref.invalidate(unreadCountProvider);
-                                  },
+                            onTap: () => _openNotification(context, ref, n),
                             child: Container(
                             padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(

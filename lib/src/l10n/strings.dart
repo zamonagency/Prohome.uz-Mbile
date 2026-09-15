@@ -159,6 +159,7 @@ class AppStrings {
     // ── Profile ──────────────────────────────────────────────────────────
     'profile.my_listings': {AppLang.uz: 'Mening e’lonlarim', AppLang.ru: 'Мои объявления', AppLang.en: 'My listings'},
     'profile.notifications': {AppLang.uz: 'Bildirishnomalar', AppLang.ru: 'Уведомления', AppLang.en: 'Notifications'},
+    'notif.mark_all_read': {AppLang.uz: 'Hammasini o‘qish', AppLang.ru: 'Прочитать все', AppLang.en: 'Mark all read'},
     'profile.language': {AppLang.uz: 'Til', AppLang.ru: 'Язык', AppLang.en: 'Language'},
     'profile.currency': {AppLang.uz: 'Valyuta', AppLang.ru: 'Валюта', AppLang.en: 'Currency'},
     'profile.theme': {AppLang.uz: 'Mavzu', AppLang.ru: 'Тема', AppLang.en: 'Theme'},
