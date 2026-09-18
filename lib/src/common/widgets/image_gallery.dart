@@ -75,12 +75,26 @@ class _ImageGalleryState extends State<ImageGallery> {
     );
   }
 
-  void _openFull(BuildContext context, List<String> imgs, int start) {
-    Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => _FullScreenGallery(images: imgs, initial: start),
-      fullscreenDialog: true,
-    ));
-  }
+  void _openFull(BuildContext context, List<String> imgs, int start) =>
+      openImageViewer(context, imgs, start);
+}
+
+/// Har qanday joydan (masalan usta portfoliosi) chaqirsa bo'ladigan,
+/// suriladigan (swipe) to'liq ekran rasm ko'ruvchi — bitta statik rasm
+/// o'rniga, keyingi/oldingi rasmga o'tish imkonini beradi.
+Future<void> openImageViewer(
+  BuildContext context,
+  List<String> images,
+  int initialIndex,
+) {
+  if (images.isEmpty) return Future.value();
+  return Navigator.of(context).push(MaterialPageRoute(
+    builder: (_) => _FullScreenGallery(
+      images: images,
+      initial: initialIndex.clamp(0, images.length - 1),
+    ),
+    fullscreenDialog: true,
+  ));
 }
 
 class _FullScreenGallery extends StatelessWidget {

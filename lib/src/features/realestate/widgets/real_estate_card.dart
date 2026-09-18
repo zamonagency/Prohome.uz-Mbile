@@ -226,15 +226,16 @@ class _ActionIcons extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final gap = compact ? 6.0 : 8.0;
+    // Avval `Row` standart (`start`) tekislanardi — 3 ta tugma kartaning
+    // chap chetiga "yopishib", o'ng tomonda foydalanilmagan bo'sh joy
+    // qolardi. Endi butun kenglik bo'yicha tekis taqsimlanadi.
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         _btn(context, Icons.call_rounded, AppColors.success,
             () => dialPhone(context, item.contactPhone)),
-        SizedBox(width: gap),
         _btn(context, Icons.send_rounded, const Color(0xFF229ED9),
             () => openTelegram(context, item.contactPhone)),
-        SizedBox(width: gap),
         _btn(
           context,
           Icons.share_outlined,

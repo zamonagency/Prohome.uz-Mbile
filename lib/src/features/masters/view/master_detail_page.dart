@@ -15,7 +15,6 @@ import '../../../common/widgets/state_views.dart';
 import '../../../core/config/env.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/utils/actions.dart';
-import '../../../core/utils/formatters.dart';
 import '../../chat/chat_repository.dart';
 import '../../favorites/favorites_controller.dart';
 import '../../home/recently_viewed_controller.dart';
@@ -34,19 +33,37 @@ class MasterDetailPage extends ConsumerWidget {
     ref.listen(masterDetailProvider(id), (_, next) {
       next.whenData((m) => ref.read(recentlyViewedProvider.notifier).trackMaster(m));
     });
+    final master = async.valueOrNull;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(s('cat.masters')),
+        // Ko'rish/like sonlari pastdagi statistikadan olib tashlanib, shu
+        // yerga ko'chirilgan — uchalasi (ko'z/ulashish/yurak) endi AYNAN
+        // bir xil o'lchamdagi (40x40) quticha ichida, ostida esa AYNAN
+        // bir xil balandlikdagi son joyi bilan chiziladi — shu sabab
+        // avval son bo'lmagan "ulashish" ikonkasi boshqalardan bir oz
+        // pastroq/yuqoriroq ko'rinib, qator "bir chiziqda turmagan" edi.
+        toolbarHeight: 66,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.share_outlined),
-            onPressed: () => async.maybeWhen(
+          _AppBarStat(
+            icon: Icons.visibility_outlined,
+            count: master?.viewCount ?? 0,
+          ),
+          _AppBarStat(
+            icon: Icons.share_outlined,
+            onTap: () => async.maybeWhen(
               data: (m) => shareText('${m.name}\n${Env.webBaseUrl}/masters/$id'),
               orElse: () {},
             ),
           ),
-          FavoriteButton(kind: FavKind.master, id: id, compact: false),
+          Padding(
+            padding: const EdgeInsets.only(right: 4),
+            child: _AppBarStat(
+              count: master?.likeCount ?? 0,
+              child: FavoriteButton(kind: FavKind.master, id: id, compact: false),
+            ),
+          ),
         ],
       ),
       body: async.when(
@@ -96,16 +113,32 @@ class _Body extends ConsumerWidget {
                           color: AppColors.primary,
                           fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
-                  Row(
+                  // Reyting/tajriba/holat — endi bittalab keng "stat"
+                  // qutichalarga emas, shu ixcham qatorga (kerak bo'lsa
+                  // keyingi qatorga tushib) sig'diriladi. Tajriba (hatto
+                  // 0 bo'lsa ham — backendda ko'plab ustada shunday)
+                  // doim ko'rinadi, "Hozir bo'sh/Band" pilidan OLDIN.
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 10,
+                    runSpacing: 6,
                     children: [
-                      if (master.avgRating > 0) ...[
-                        StarRating(value: master.avgRating),
-                        const SizedBox(width: 4),
-                        Text('(${master.ratings.length})',
-                            style: TextStyle(
-                                fontSize: 12, color: context.muted)),
-                        const SizedBox(width: 10),
-                      ],
+                      Pill(
+                        label: '${master.experience} ${s('master.experience')}',
+                        icon: Icons.workspace_premium_outlined,
+                        dense: true,
+                      ),
+                      if (master.avgRating > 0)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            StarRating(value: master.avgRating),
+                            const SizedBox(width: 4),
+                            Text('(${master.ratings.length})',
+                                style: TextStyle(
+                                    fontSize: 12, color: context.muted)),
+                          ],
+                        ),
                       Pill(
                         label: master.isFree
                             ? s('master.free_now')
@@ -120,14 +153,6 @@ class _Body extends ConsumerWidget {
                 ],
               ),
             ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            _stat(context, '${master.experience}', s('master.experience')),
-            _stat(context, compactPrice(master.viewCount), s('estate.views')),
-            _stat(context, '${master.likeCount}', s('estate.likes')),
           ],
         ),
         if (master.salary != null && master.salary! > 0) ...[
@@ -182,13 +207,10 @@ class _Body extends ConsumerWidget {
               itemCount: master.portfolio.length,
               separatorBuilder: (_, __) => const SizedBox(width: 10),
               itemBuilder: (_, i) => GestureDetector(
-                onTap: () => showDialog(
-                  context: context,
-                  builder: (_) => Dialog(
-                    child: AppNetworkImage(
-                        raw: master.portfolio[i], fit: BoxFit.contain),
-                  ),
-                ),
+                // Endi bitta statik rasm o'rniga — suriladigan (swipe)
+                // to'liq ekran galereya, xuddi shu nuqtadan (bosilgan
+                // rasmdan) boshlab, keyingi/oldingi ishlarga o'tish mumkin.
+                onTap: () => openImageViewer(context, master.portfolio, i),
                 child: RoundedImage(raw: master.portfolio[i], height: 120),
               ),
             ),
@@ -230,9 +252,15 @@ class _Body extends ConsumerWidget {
           const SizedBox(height: 18),
           Text(s('home.sec_similar_masters'), style: context.texts.titleMedium),
           const SizedBox(height: 8),
+          // MUHIM: 220 balandlik MasterGridCard ichidagi matn/pill'lar
+          // (ayniqsa "Jamoa" pili qo'shimcha qatorga tushganda) uchun
+          // yetarli emas edi — shu sabab kartaning tagida sariq-qora
+          // chiziqli "overflow" ogohlantirishi chiqib turardi. Balandlik
+          // haqiqiy kontent bo'yicha (rasm + matn + pill'lar, hattoki
+          // 2 qatorli pill holatida ham) zaxira bilan hisoblab qo'yilgan.
           HScroller(
-            height: 220,
-            itemWidth: 150,
+            height: 268,
+            itemWidth: 156,
             itemCount: master.similar.length,
             padding: EdgeInsets.zero,
             itemBuilder: (_, i) => MasterGridCard(master: master.similar[i]),
@@ -242,26 +270,64 @@ class _Body extends ConsumerWidget {
     );
   }
 
-  Widget _stat(BuildContext context, String value, String label) => Expanded(
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 4),
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: context.colors.surface,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: context.border),
-          ),
-          child: Column(
-            children: [
-              Text(value,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w800, fontSize: 16)),
-              Text(label,
-                  style: TextStyle(fontSize: 11, color: context.muted)),
-            ],
-          ),
+}
+
+/// AppBar'da ikonka + uning tagida kichik son — ko'rish/like sonlarini
+/// alohida, keng "stat" qutichasiz, ixcham ko'rsatish uchun.
+///
+/// MUHIM: uchala harakat (ko'rish/ulashish/like) ham AYNAN bir xil
+/// o'lchamdagi (40x40) ikonka qutichasi + AYNAN bir xil balandlikdagi
+/// (16) son joyidan iborat — shu bilan barchasi bitta gorizontal
+/// chiziqda turadi. Avval "ulashish"da son bo'lmagani uchun uning
+/// qutichasi boshqalardan pastroq/torroq bo'lib, qator "sirg'algan"
+/// ko'rinardi; endi son yo'q bo'lsa ham shu balandlikdagi bo'sh joy
+/// saqlanadi.
+class _AppBarStat extends StatelessWidget {
+  const _AppBarStat({this.icon, this.child, this.count, this.onTap})
+      : assert(icon != null || child != null);
+  final IconData? icon;
+  final Widget? child;
+  final int? count;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        SizedBox(
+          width: 40,
+          height: 40,
+          child: child ??
+              Material(
+                color: Colors.transparent,
+                shape: const CircleBorder(),
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: onTap,
+                  child: Icon(icon, size: 22),
+                ),
+              ),
         ),
-      );
+        SizedBox(
+          height: 16,
+          child: count == null
+              ? null
+              : Center(
+                  child: Text(
+                    '$count',
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      color: context.muted,
+                    ),
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
 }
 
 class _ActionBar extends ConsumerWidget {
@@ -291,17 +357,28 @@ class _ActionBar extends ConsumerWidget {
       minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
       child: Row(
         children: [
-          if (master.phone.isNotEmpty)
-            Expanded(
-              child: OutlinedButton.icon(
+          // Avval "Qo'ng'iroq" matni + ikonka `Expanded(flex: 1)` ichiga
+          // sig'may, so'z o'rtasida ("Qo'ng" / "'iroq") ikki qatorga
+          // bo'linib ketardi — chiroyli emas edi. Qo'ng'iroq universal
+          // ikonka bilan tushunarli bo'lgani uchun endi faqat ikonkali,
+          // ixcham kvadrat tugma; "Yozish" esa to'liq qolgan joyni oladi.
+          if (master.phone.isNotEmpty) ...[
+            SizedBox(
+              width: 52,
+              height: 52,
+              child: OutlinedButton(
                 onPressed: () => dialPhone(context, master.phone),
-                icon: const Icon(Icons.call_rounded, size: 18),
-                label: Text(s('common.call')),
+                style: OutlinedButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                ),
+                child: const Icon(Icons.call_rounded, size: 22),
               ),
             ),
-          if (master.phone.isNotEmpty) const SizedBox(width: 10),
+            const SizedBox(width: 10),
+          ],
           Expanded(
-            flex: 2,
             child: ElevatedButton.icon(
               onPressed: () => _openChat(context, ref),
               icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),

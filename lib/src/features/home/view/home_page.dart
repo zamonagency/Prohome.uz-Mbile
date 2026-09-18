@@ -43,7 +43,6 @@ class HomePage extends ConsumerWidget {
             slivers: [
               SliverToBoxAdapter(child: _Header(userName: user?.firstName)),
               SliverToBoxAdapter(child: _SearchBar(s: s)),
-              SliverToBoxAdapter(child: _CategoryChips(s: s)),
               SliverToBoxAdapter(child: _QuickActions(s: s)),
               ...bundle.when(
                 loading: () => [
@@ -132,7 +131,16 @@ class HomePage extends ConsumerWidget {
           child: HGridScroller(
             rows: 4,
             itemWidth: 172,
-            itemHeight: 250,
+            visibleColumns: 2,
+            minItemWidth: 150,
+            maxItemWidth: 260,
+            // RealEstateMiniCard: rasm 16:10, pastdagi narx/sarlavha/
+            // xususiyat/statistika/qo'ng'iroq-tugmalar qismi ~154px
+            // (shrift o'lchami FIKS — kenglikka qarab kichraymaydi;
+            // xavfsizlik zaxirasi bilan — haqiqiy qurilmada kam
+            // hisoblanib ketmasligi uchun).
+            imageAspectRatio: 16 / 10,
+            footerHeight: 154,
             itemCount: data.freshEstates.length,
             itemBuilder: (_, i) => RealEstateMiniCard(item: data.freshEstates[i]),
           ),
@@ -151,7 +159,11 @@ class HomePage extends ConsumerWidget {
           child: HGridScroller(
             rows: 4,
             itemWidth: 172,
-            itemHeight: 250,
+            visibleColumns: 2,
+            minItemWidth: 150,
+            maxItemWidth: 260,
+            imageAspectRatio: 16 / 10,
+            footerHeight: 154,
             itemCount: data.rentEstates.length,
             itemBuilder: (_, i) => RealEstateMiniCard(item: data.rentEstates[i]),
           ),
@@ -173,7 +185,15 @@ class HomePage extends ConsumerWidget {
           child: HGridScroller(
             rows: 4,
             itemWidth: 150,
-            itemHeight: 262,
+            visibleColumns: 2,
+            minItemWidth: 132,
+            maxItemWidth: 230,
+            // MasterGridCard: rasm nisbati 1.15, pastdagi ism/kasb/
+            // pill/statistika qismi ~140px (fiks, zaxira bilan; avval
+            // shu joyni hisobga olmagani uchun "similar masters"dagi
+            // kabi overflow chiqishi mumkin edi).
+            imageAspectRatio: 1.15,
+            footerHeight: 140,
             itemCount: data.topMasters.length,
             itemBuilder: (_, i) => MasterGridCard(master: data.topMasters[i]),
           ),
@@ -398,7 +418,10 @@ class _QuickActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 6, 16, 2),
+      // Bosh sahifadagi "Ko'chmas mulk / Yangi binolar / Ustalar" pill
+      // qatori olib tashlandi — bo'shab qolgan joy shu bo'lim tepasiga
+      // biroz ko'proq bo'shliq berish orqali tabiiy to'ldiriladi.
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
       child: Row(
         children: [
           Expanded(
@@ -461,59 +484,6 @@ class _QuickActions extends StatelessWidget {
   }
 }
 
-// ─── Kompakt "ko'chmas mulk / yangi bino" pill'lari ─────────────────────────
-class _CategoryChips extends StatelessWidget {
-  const _CategoryChips({required this.s});
-  final AppStrings s;
-
-  @override
-  Widget build(BuildContext context) {
-    final cats = <(IconData, String, String)>[
-      (Icons.apartment_rounded, s('cat.estates'), Routes.estates),
-      (Icons.location_city_rounded, s('cat.newbuilds'), Routes.newbuilds),
-      (Icons.handyman_rounded, s('cat.masters'), Routes.masters),
-      (Icons.work_outline_rounded, s('cat.jobs'), Routes.jobs),
-      (Icons.business_rounded, s('cat.companies'), Routes.companies),
-      (Icons.map_rounded, s('map.title'), Routes.map),
-      (Icons.article_outlined, s('cat.news'), Routes.news),
-    ];
-    return SizedBox(
-      height: 46,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 2),
-        itemCount: cats.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 10),
-        itemBuilder: (_, i) {
-          final c = cats[i];
-          return InkWell(
-            borderRadius: BorderRadius.circular(999),
-            onTap: () => context.push(c.$3),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: context.colors.surface,
-                borderRadius: BorderRadius.circular(999),
-                boxShadow: context.softShadow,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(c.$1, size: 17, color: AppColors.primary),
-                  const SizedBox(width: 7),
-                  Text(c.$2,
-                      style: const TextStyle(
-                          fontSize: 13.5, fontWeight: FontWeight.w700)),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
 // ─── 2 qatorli, gorizontal skrol qiladigan kategoriyalar (API) ──────────────
 (IconData, Color) _categoryVisual(String key) => switch (key) {
       'APARTMENT' => (Icons.apartment_rounded, AppColors.primary),
@@ -565,6 +535,18 @@ class _CategoryGridState extends State<_CategoryGrid> {
   double _progress = 0;
   double _thumbFraction = 1;
 
+  // Har doim (eng kichik telefondan planshetgacha) X o'qi bo'yicha aynan
+  // 4 ta ustun, Y o'qi bo'yicha 2 ta qator to'liq ko'rinadi — kenglik
+  // ekranga qarab hisoblanadi, shu bilan birga ikonka doiraga real
+  // "planshetda ulkanlashib ketish"ning oldi olingan (faqat kenglik/
+  // bo'sh joy ko'payadi, ikonka o'zi bir chegaradan katta bo'lmaydi).
+  static const _columns = 4;
+  static const _rows = 2;
+  static const _colSpacing = 12.0;
+  static const _rowSpacing = 14.0;
+  static const _sidePadding = 16.0;
+  static const _minTileWidth = 64.0;
+
   @override
   void initState() {
     super.initState();
@@ -597,58 +579,124 @@ class _CategoryGridState extends State<_CategoryGrid> {
     if (categories.isEmpty) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.only(top: 4),
-      child: Column(
-        children: [
-          SizedBox(
-            height: 176,
-            child: GridView.builder(
-              controller: _scroll,
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 10,
-                mainAxisExtent: 84,
-              ),
-              itemCount: categories.length,
-              itemBuilder: (context, i) {
-                final c = categories[i];
-                final (icon, color) = _categoryVisual(c.key);
-                return InkWell(
-                  borderRadius: BorderRadius.circular(20),
-                  onTap: () => _openCategory(context, c.key),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 52,
-                        height: 52,
-                        decoration: BoxDecoration(
-                          color: color.withValues(alpha: 0.14),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(icon, color: color, size: 24),
-                      ),
-                      const SizedBox(height: 6),
-                      SizedBox(
-                        width: 76,
-                        child: Text(c.name,
-                            textAlign: TextAlign.center,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                                fontSize: 11, fontWeight: FontWeight.w600)),
-                      ),
-                    ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final available = constraints.maxWidth - _sidePadding * 2;
+          final rawWidth = (available - _colSpacing * (_columns - 1)) / _columns;
+          final tileWidth = rawWidth < _minTileWidth ? _minTileWidth : rawWidth;
+          final circleSize = (tileWidth * 0.6).clamp(40.0, 64.0);
+          final tileHeight = circleSize + 6 + 16 + 4;
+          final gridHeight = tileHeight * _rows + _rowSpacing;
+
+          return Column(
+            children: [
+              SizedBox(
+                height: gridHeight,
+                child: GridView.builder(
+                  controller: _scroll,
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: _sidePadding, vertical: 4),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: _rows,
+                    mainAxisSpacing: _colSpacing,
+                    crossAxisSpacing: _rowSpacing,
+                    mainAxisExtent: tileWidth,
                   ),
-                );
-              },
-            ),
+                  itemCount: categories.length,
+                  itemBuilder: (context, i) {
+                    final c = categories[i];
+                    final (icon, color) = _categoryVisual(c.key);
+                    return _CategoryTile(
+                      icon: icon,
+                      color: color,
+                      label: c.name,
+                      tileWidth: tileWidth,
+                      circleSize: circleSize,
+                      onTap: () => _openCategory(context, c.key),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 8),
+              _ScrollTrack(progress: _progress, thumbFraction: _thumbFraction),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// Bosilganda yengil "siqilish" animatsiyasi bilan — interaktiv his beradi.
+class _CategoryTile extends StatefulWidget {
+  const _CategoryTile({
+    required this.icon,
+    required this.color,
+    required this.label,
+    required this.tileWidth,
+    required this.circleSize,
+    required this.onTap,
+  });
+  final IconData icon;
+  final Color color;
+  final String label;
+  final double tileWidth;
+  final double circleSize;
+  final VoidCallback onTap;
+
+  @override
+  State<_CategoryTile> createState() => _CategoryTileState();
+}
+
+class _CategoryTileState extends State<_CategoryTile> {
+  bool _pressed = false;
+
+  void _setPressed(bool v) {
+    if (_pressed != v) setState(() => _pressed = v);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) => _setPressed(true),
+      onTapCancel: () => _setPressed(false),
+      onTapUp: (_) => _setPressed(false),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: widget.onTap,
+        child: AnimatedScale(
+          scale: _pressed ? 0.90 : 1,
+          duration: const Duration(milliseconds: 110),
+          curve: Curves.easeOut,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: widget.circleSize,
+                height: widget.circleSize,
+                decoration: BoxDecoration(
+                  color: widget.color.withValues(alpha: 0.14),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(widget.icon,
+                    color: widget.color, size: widget.circleSize * 0.44),
+              ),
+              const SizedBox(height: 6),
+              SizedBox(
+                width: widget.tileWidth,
+                child: Text(
+                  widget.label,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 4),
-          _ScrollTrack(progress: _progress, thumbFraction: _thumbFraction),
-        ],
+        ),
       ),
     );
   }

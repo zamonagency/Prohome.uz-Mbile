@@ -157,6 +157,110 @@ class HGridScroller extends StatelessWidget {
     this.itemHeight = 210,
     this.spacing = 12,
     this.padding = const EdgeInsets.symmetric(horizontal: 16),
+    this.visibleColumns,
+    this.minItemWidth,
+    this.maxItemWidth,
+    this.peek = 0,
+    this.imageAspectRatio,
+    this.footerHeight,
+  });
+
+  final int itemCount;
+  final int rows;
+
+  /// [visibleColumns] berilmasa — qat'iy kenglik/balandlik shu holicha
+  /// ishlatiladi.
+  final double itemWidth;
+  final double itemHeight;
+  final double spacing;
+  final EdgeInsets padding;
+
+  /// Berilsa: ekran kengligidan qat'i nazar (eng kichik telefondan
+  /// planshetgacha) aynan shuncha ustun bir vaqtda TO'LIQ (keyingisi
+  /// hatto bir siqim ham ko'rinmasdan) sig'adigan qilib kenglik
+  /// hisoblanadi; ko'proq element bo'lsa — gorizontal skrol (har bir
+  /// qator mustaqil, alohida-alohida skrol qiladi).
+  final int? visibleColumns;
+
+  /// Juda tor ekranlarda kartaning o'qib bo'lmas darajada torayib
+  /// ketishining oldini oladigan pastki chegara.
+  final double? minItemWidth;
+
+  /// Juda keng (katta planshet) ekranlarda kartaning haddan tashqari
+  /// kattalashib ketishining oldini oladigan yuqori chegara.
+  final double? maxItemWidth;
+
+  /// >0 bo'lsa, keyingi kartaning shuncha qismi ko'rinib turadi (skrol
+  /// borligini bildiruvchi ishora). Standart 0 — chegaradan tashqari
+  /// karta UMUMAN ko'rinmaydi, faqat qo'lda suriganda chiqadi.
+  final double peek;
+
+  /// [visibleColumns] bilan ishlatilganda — kartaning YUQORI (rasm)
+  /// qismi shu nisbatda (en/bo'y) masshtablanadi.
+  final double? imageAspectRatio;
+
+  /// [visibleColumns] bilan ishlatilganda — kartaning matn/tugmalar
+  /// qismi uchun QAT'IY (kenglikka qarab o'zgarmaydigan) balandlik.
+  /// MUHIM: bu qism shrift/ikonka o'lchamlari FIKS bo'lgani uchun butun
+  /// kartani "proporsional" kichraytirish balandlikni yetarlicha
+  /// hisoblamay, matn tagida sariq-qora "overflow" chizig'iga olib
+  /// kelgan edi — shu sabab rasm va footer balandligi ENDI ALOHIDA-
+  /// ALOHIDA hisoblanadi: umumiy balandlik = kenglik/[imageAspectRatio]
+  /// + [footerHeight].
+  final double? footerHeight;
+
+  final Widget Function(BuildContext, int) itemBuilder;
+
+  @override
+  Widget build(BuildContext context) {
+    if (visibleColumns == null) {
+      return _HGridRows(
+        itemCount: itemCount,
+        rows: rows,
+        itemWidth: itemWidth,
+        itemHeight: itemHeight,
+        spacing: spacing,
+        padding: padding,
+        itemBuilder: itemBuilder,
+      );
+    }
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cols = visibleColumns!;
+        final available = constraints.maxWidth - padding.horizontal - peek;
+        var width = (available - spacing * (cols - 1)) / cols;
+        final min = minItemWidth;
+        final max = maxItemWidth;
+        if (min != null && width < min) width = min;
+        if (max != null && width > max) width = max;
+        final aspect = imageAspectRatio;
+        final footer = footerHeight;
+        final height = (aspect != null && footer != null)
+            ? width / aspect + footer
+            : itemHeight * (width / itemWidth);
+        return _HGridRows(
+          itemCount: itemCount,
+          rows: rows,
+          itemWidth: width,
+          itemHeight: height,
+          spacing: spacing,
+          padding: padding,
+          itemBuilder: itemBuilder,
+        );
+      },
+    );
+  }
+}
+
+class _HGridRows extends StatelessWidget {
+  const _HGridRows({
+    required this.itemCount,
+    required this.rows,
+    required this.itemWidth,
+    required this.itemHeight,
+    required this.spacing,
+    required this.padding,
+    required this.itemBuilder,
   });
 
   final int itemCount;
@@ -187,6 +291,9 @@ class HGridScroller extends StatelessWidget {
           if (r > 0) SizedBox(height: spacing),
           SizedBox(
             height: itemHeight,
+            // Har bir qator o'zining mustaqil `ListView`iga ega — bittasini
+            // surish boshqalariga ta'sir qilmaydi (`HGridScroller`ning
+            // asosiy xususiyati, kenglik endi responsiv bo'lsa ham saqlanadi).
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               padding: padding,

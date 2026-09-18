@@ -6,6 +6,7 @@ import '../features/auth/auth_controller.dart';
 import '../features/auth/view/become_master_page.dart';
 import '../features/auth/view/login_page.dart';
 import '../features/auth/view/otp_page.dart';
+import '../features/auth/view/register_flow_page.dart';
 import '../features/auth/view/register_page.dart';
 import '../features/chat/view/chat_thread_page.dart';
 import '../features/chat/view/chats_page.dart';
@@ -62,6 +63,9 @@ class Routes {
   static const login = '/login';
   static const otp = '/login/otp';
   static const register = '/login/register';
+  /// Yangi, 4 bosqichli (telefon → kod → ma'lumot → xavfsizlik) ro'yxatdan
+  /// o'tish sahifasi — [RegisterFlowPage].
+  static const registerFlow = '/register';
   static const becomeMaster = '/become-master';
 
   static String estate(int id) => '/estates/$id';
@@ -256,6 +260,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           phone: s.uri.queryParameters['phone'] ?? '',
           otp: s.uri.queryParameters['otp'] ?? '',
         ),
+      ),
+      GoRoute(
+        path: Routes.registerFlow,
+        parentNavigatorKey: _rootKey,
+        builder: (c, s) => const RegisterFlowPage(),
       ),
       GoRoute(
         path: Routes.becomeMaster,

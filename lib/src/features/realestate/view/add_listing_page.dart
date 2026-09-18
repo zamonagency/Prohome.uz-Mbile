@@ -8,6 +8,7 @@ import 'package:latlong2/latlong.dart';
 import '../../../app/router.dart';
 import '../../../app/settings_controller.dart';
 import '../../../app/theme.dart';
+import '../../../l10n/strings.dart';
 import '../../../common/widgets/location_picker.dart';
 import '../../../core/network/api_exception.dart';
 import '../../auth/auth_controller.dart';
@@ -225,154 +226,357 @@ class _AddListingPageState extends ConsumerState<AddListingPage> {
 
     return Scaffold(
       appBar: AppBar(title: Text(s('estate.add'))),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
-        children: [
-          _sectionTitle('1. Bitim va toifa'),
-          _seg(
-            label: s('filter.deal'),
-            value: _deal,
-            options: const {'SALE': 'Sotiladi', 'RENT': 'Ijaraga'},
-            onChanged: (v) => setState(() => _deal = v),
-          ),
-          const SizedBox(height: 12),
-          const Text("Ko'chmas mulk toifasi",
-              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: propertyCategories
-                .map((c) => ChoiceChip(
-                      label: Text(c.label),
-                      selected: _category.label == c.label,
-                      onSelected: (_) => setState(() => _category = c),
-                      selectedColor: AppColors.primary,
-                      showCheckmark: false,
-                      labelStyle: TextStyle(
-                          color: _category.label == c.label ? Colors.white : null,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12.5),
-                    ))
-                .toList(),
-          ),
-          const SizedBox(height: 20),
-
-          _sectionTitle('2. Manzil (majburiy)'),
-          LocationField(
-            locationId: _locationId,
-            required: true,
-            onChanged: (l) {
-              setState(() {
-                _locationId = l.id;
-                _locationName = l.name;
-              });
-            },
-          ),
-          const SizedBox(height: 10),
-          InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: _pickPoint,
-            child: InputDecorator(
-              decoration: const InputDecoration(
-                labelText: 'Xaritadagi aniq nuqta *',
-                suffixIcon: Icon(Icons.map_rounded),
-              ),
-              child: Text(
-                _point == null
-                    ? "Xaritadan tanlash uchun bosing"
-                    : '${_point!.latitude.toStringAsFixed(6)}, ${_point!.longitude.toStringAsFixed(6)}',
-                style: TextStyle(color: _point == null ? context.muted : null),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          _sectionTitle('3. Xususiyatlari'),
-          _text(_area, 'Maydon (m²)', required: true, number: true, decimal: true),
-          Row(
+      body: Center(
+        child: ConstrainedBox(
+          // Planshetda forma cheksiz cho'zilib ketmasin uchun.
+          constraints: const BoxConstraints(maxWidth: 640),
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
             children: [
-              Expanded(child: _text(_rooms, 'Xonalar soni', required: true, number: true)),
-              const SizedBox(width: 12),
-              Expanded(child: _text(_livingArea, 'Yashash maydoni (m²)', number: true, decimal: true)),
+              _Hero(s: s),
+              const SizedBox(height: 18),
+
+              _sectionCard(
+                icon: Icons.sell_rounded,
+                color: AppColors.primary,
+                title: 'Bitim va toifa',
+                children: [
+                  _seg(
+                    label: s('filter.deal'),
+                    value: _deal,
+                    options: const {'SALE': 'Sotiladi', 'RENT': 'Ijaraga'},
+                    onChanged: (v) => setState(() => _deal = v),
+                  ),
+                  const SizedBox(height: 16),
+                  Text("Ko'chmas mulk toifasi",
+                      style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                          color: context.muted)),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: propertyCategories
+                        .map((c) => ChoiceChip(
+                              label: Text(c.label),
+                              selected: _category.label == c.label,
+                              onSelected: (_) => setState(() => _category = c),
+                              selectedColor: AppColors.primary,
+                              showCheckmark: false,
+                              labelStyle: TextStyle(
+                                  color: _category.label == c.label
+                                      ? Colors.white
+                                      : null,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 12.5),
+                            ))
+                        .toList(),
+                  ),
+                ],
+              ),
+
+              _sectionCard(
+                icon: Icons.location_on_rounded,
+                color: const Color(0xFF0F80FF),
+                title: 'Manzil',
+                required: true,
+                children: [
+                  LocationField(
+                    locationId: _locationId,
+                    required: true,
+                    onChanged: (l) {
+                      setState(() {
+                        _locationId = l.id;
+                        _locationName = l.name;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  Text('Xaritadagi aniq nuqta *',
+                      style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                          color: context.muted)),
+                  const SizedBox(height: 8),
+                  // MUHIM: `InputDecorator` o'zining ikonka/matn oralig'ini
+                  // qattiq belgilab qo'yadi — uzunroq matn strelka
+                  // ikonkasiga deyarli yopishib qolardi. Endi to'liq
+                  // qo'lda chizilgan qator — matn va strelka orasida
+                  // aniq, kafolatlangan bo'shliq bilan.
+                  InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: _pickPoint,
+                    child: Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: context.isDark
+                            ? AppColors.darkSurfaceAlt
+                            : const Color(0xFFF1F3F6),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.map_outlined,
+                              size: 20, color: context.muted),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              _point == null
+                                  ? "Xaritadan tanlash uchun bosing"
+                                  : '${_point!.latitude.toStringAsFixed(6)}, ${_point!.longitude.toStringAsFixed(6)}',
+                              maxLines: 2,
+                              style: TextStyle(
+                                  color: _point == null ? context.muted : null,
+                                  fontWeight: _point == null
+                                      ? FontWeight.w500
+                                      : FontWeight.w700,
+                                  height: 1.3),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Icon(Icons.chevron_right_rounded,
+                              size: 20, color: context.muted),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              _sectionCard(
+                icon: Icons.straighten_rounded,
+                color: AppColors.accent,
+                title: 'Xususiyatlari',
+                children: [
+                  _text(_area, 'Maydon (m²)',
+                      required: true,
+                      number: true,
+                      decimal: true,
+                      icon: Icons.square_foot_rounded),
+                  // MUHIM: bu yerda ikkita maydon yonma-yon, tor ustunda —
+                  // ikonka + to'liq label (masalan "Xonalar soni") sig'may,
+                  // label "Xonalar so..." bo'lib qisqarib, ikonkaga
+                  // yopishib qolgan ko'rinardi. Shu sabab juftlashgan
+                  // (yarim kenglikdagi) maydonlarda ikonka ishlatilmaydi —
+                  // faqat to'liq kenglikdagilarda (Maydon, Narx va h.k.).
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _text(_rooms, 'Xonalar soni',
+                            required: true, number: true),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _text(_livingArea, 'Yashash maydoni (m²)',
+                            number: true, decimal: true),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _text(_floor, 'Qavat', number: true),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _text(_totalFloors, 'Jami qavat', number: true),
+                      ),
+                    ],
+                  ),
+                  if (_isHouseLike)
+                    _text(_plotSize, 'Yer maydoni (sotix)',
+                        number: true,
+                        decimal: true,
+                        icon: Icons.landscape_outlined),
+                ],
+              ),
+
+              _sectionCard(
+                icon: Icons.tune_rounded,
+                color: const Color(0xFF7F4DFF),
+                title: 'Qulayliklar',
+                dense: true,
+                children: [
+                  _amenity(Icons.format_paint_outlined, "Ta'mirlash", repairOptions, _repair,
+                      (v) => setState(() => _repair = v)),
+                  _amenity(Icons.local_fire_department_outlined, 'Gaz', gasOptions, _gas,
+                      (v) => setState(() => _gas = v)),
+                  _amenity(Icons.thermostat_outlined, 'Isitish tizimi', heatingOptions, _heating,
+                      (v) => setState(() => _heating = v)),
+                  _amenity(Icons.water_drop_outlined, "Suv ta'minoti", waterOptions, _water,
+                      (v) => setState(() => _water = v)),
+                  _amenity(Icons.plumbing_outlined, 'Kanalizatsiya', sewageOptions, _sewage,
+                      (v) => setState(() => _sewage = v)),
+                  _amenity(Icons.bolt_outlined, "Elektr ta'minoti", electricityOptions,
+                      _electricity, (v) => setState(() => _electricity = v)),
+                  _amenity(Icons.local_parking_outlined, 'Avtoturargoh', parkingOptions,
+                      _parking, (v) => setState(() => _parking = v), isLast: !_isHouseLike),
+                  if (_isHouseLike)
+                    _amenity(Icons.apartment_outlined, 'Uy turi', buildingTypeOptions,
+                        _buildingType, (v) => setState(() => _buildingType = v),
+                        isLast: true),
+                ],
+              ),
+
+              _sectionCard(
+                icon: Icons.photo_library_rounded,
+                color: const Color(0xFF10B782),
+                title: 'Rasmlar',
+                required: true,
+                children: [_photosGrid()],
+              ),
+
+              _sectionCard(
+                icon: Icons.edit_note_rounded,
+                color: const Color(0xFFE5484D),
+                title: "Sarlavha va ta'rif",
+                children: [
+                  _text(_title, 'Sarlavha', required: true, icon: Icons.title_rounded),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      onPressed: _generateDescription,
+                      icon: const Icon(Icons.auto_awesome_rounded, size: 18),
+                      label: const Text("Qulayliklardan ta'rif yasash"),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  _text(_desc, s('estate.description'), maxLines: 6),
+                ],
+              ),
+
+              _sectionCard(
+                icon: Icons.payments_rounded,
+                color: AppColors.primaryDeep,
+                title: 'Narx va aloqa',
+                children: [
+                  _text(_price, 'Narx (USD)',
+                      required: true,
+                      number: true,
+                      decimal: true,
+                      icon: Icons.attach_money_rounded),
+                  _text(_phone, s('auth.phone'),
+                      required: true, icon: Icons.phone_outlined),
+                ],
+              ),
             ],
           ),
-          Row(
-            children: [
-              Expanded(child: _text(_floor, 'Qavat', number: true)),
-              const SizedBox(width: 12),
-              Expanded(child: _text(_totalFloors, 'Jami qavat', number: true)),
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (_error != null) ...[
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppColors.danger.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.error_outline_rounded,
+                        color: AppColors.danger, size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(_error!,
+                          style: const TextStyle(
+                              color: AppColors.danger, fontSize: 12.5)),
+                    ),
+                  ],
+                ),
+              ),
             ],
-          ),
-          if (_isHouseLike)
-            _text(_plotSize, 'Yer maydoni (sotix)', number: true, decimal: true),
-          const SizedBox(height: 10),
-
-          _sectionTitle('4. Qulayliklar'),
-          _amenity(Icons.format_paint_outlined, "Ta'mirlash", repairOptions, _repair,
-              (v) => setState(() => _repair = v)),
-          _amenity(Icons.local_fire_department_outlined, 'Gaz', gasOptions, _gas,
-              (v) => setState(() => _gas = v)),
-          _amenity(Icons.thermostat_outlined, 'Isitish tizimi', heatingOptions, _heating,
-              (v) => setState(() => _heating = v)),
-          _amenity(Icons.water_drop_outlined, "Suv ta'minoti", waterOptions, _water,
-              (v) => setState(() => _water = v)),
-          _amenity(Icons.plumbing_outlined, 'Kanalizatsiya', sewageOptions, _sewage,
-              (v) => setState(() => _sewage = v)),
-          _amenity(Icons.bolt_outlined, "Elektr ta'minoti", electricityOptions,
-              _electricity, (v) => setState(() => _electricity = v)),
-          _amenity(Icons.local_parking_outlined, 'Avtoturargoh', parkingOptions,
-              _parking, (v) => setState(() => _parking = v)),
-          if (_isHouseLike)
-            _amenity(Icons.apartment_outlined, 'Uy turi', buildingTypeOptions,
-                _buildingType, (v) => setState(() => _buildingType = v)),
-          const SizedBox(height: 10),
-
-          _sectionTitle("5. Rasmlar (kamida 1 ta) *"),
-          _photosGrid(),
-          const SizedBox(height: 20),
-
-          _sectionTitle("6. Sarlavha va ta'rif"),
-          _text(_title, 'Sarlavha', required: true),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton.icon(
-              onPressed: _generateDescription,
-              icon: const Icon(Icons.auto_awesome_rounded, size: 18),
-              label: const Text("Qulayliklardan ta'rif yasash"),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: _busy ? null : _submit,
+                child: _busy
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white))
+                    : Text(s('common.save')),
+              ),
             ),
-          ),
-          _text(_desc, s('estate.description'), maxLines: 6),
-          const SizedBox(height: 20),
-
-          _sectionTitle('7. Narx va aloqa'),
-          _text(_price, 'Narx (USD)', required: true, number: true, decimal: true),
-          _text(_phone, s('auth.phone'), required: true),
-
-          if (_error != null) ...[
-            const SizedBox(height: 8),
-            Text(_error!, style: const TextStyle(color: AppColors.danger, fontSize: 13)),
           ],
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: _busy ? null : _submit,
-            child: _busy
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : Text(s('common.save')),
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _sectionTitle(String text) => Padding(
-        padding: const EdgeInsets.only(top: 6, bottom: 10),
-        child: Text(text,
-            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
-      );
+  /// Har bir bo'lim endi alohida, ikonkali karta — avvalgi "1. 2. 3."
+  /// oddiy matn sarlavhalar bir-biriga o'xshab, ko'zga tashlanmasdi.
+  Widget _sectionCard({
+    required IconData icon,
+    required Color color,
+    required String title,
+    required List<Widget> children,
+    bool required = false,
+    bool dense = false,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: EdgeInsets.all(dense ? 16 : 18),
+      decoration: BoxDecoration(
+        color: context.colors.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radius),
+        border: Border.all(color: context.border),
+        boxShadow: context.softShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: color, size: 18),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w800, fontSize: 15.5),
+                ),
+              ),
+              if (required)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.danger.withValues(alpha: 0.10),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: const Text('Majburiy',
+                      style: TextStyle(
+                          color: AppColors.danger,
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w700)),
+                ),
+            ],
+          ),
+          SizedBox(height: dense ? 14 : 18),
+          ...children,
+        ],
+      ),
+    );
+  }
 
   Widget _photosGrid() {
     return Wrap(
@@ -414,11 +618,27 @@ class _AddListingPageState extends ConsumerState<AddListingPage> {
           child: Container(
             width: 88,
             height: 88,
+            alignment: Alignment.center,
             decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.06),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: context.border, width: 1.4),
+              border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.35),
+                  width: 1.4),
             ),
-            child: Icon(Icons.add_a_photo_outlined, color: context.muted),
+            child: const Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.add_a_photo_outlined,
+                    color: AppColors.primary, size: 24),
+                SizedBox(height: 4),
+                Text("Qo'shish",
+                    style: TextStyle(
+                        fontSize: 10.5,
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w700)),
+              ],
+            ),
           ),
         ),
       ],
@@ -426,21 +646,37 @@ class _AddListingPageState extends ConsumerState<AddListingPage> {
   }
 
   Widget _amenity(IconData icon, String label, List<String> options,
-      String? value, ValueChanged<String?> onChanged) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      String? value, ValueChanged<String?> onChanged,
+      {bool isLast = false}) {
+    return Container(
+      padding: EdgeInsets.only(bottom: isLast ? 0 : 14, top: isLast ? 0 : 0),
+      margin: EdgeInsets.only(bottom: isLast ? 0 : 14),
+      decoration: isLast
+          ? null
+          : BoxDecoration(
+              border: Border(bottom: BorderSide(color: context.border)),
+            ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, size: 16, color: AppColors.primary),
-              const SizedBox(width: 6),
+              Container(
+                width: 26,
+                height: 26,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.10),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, size: 14, color: AppColors.primary),
+              ),
+              const SizedBox(width: 8),
               Text(label,
                   style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -470,6 +706,7 @@ class _AddListingPageState extends ConsumerState<AddListingPage> {
     bool number = false,
     bool decimal = false,
     int maxLines = 1,
+    IconData? icon,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -485,7 +722,10 @@ class _AddListingPageState extends ConsumerState<AddListingPage> {
                     decimal ? RegExp(r'[0-9.]') : RegExp(r'[0-9]')),
               ]
             : null,
-        decoration: InputDecoration(labelText: required ? '$label *' : label),
+        decoration: InputDecoration(
+          labelText: required ? '$label *' : label,
+          prefixIcon: icon != null ? Icon(icon, size: 20) : null,
+        ),
       ),
     );
   }
@@ -500,8 +740,9 @@ class _AddListingPageState extends ConsumerState<AddListingPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
-            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
-        const SizedBox(height: 8),
+            style: TextStyle(
+                fontWeight: FontWeight.w700, fontSize: 13, color: context.muted)),
+        const SizedBox(height: 10),
         Wrap(
           spacing: 8,
           children: options.entries
@@ -519,6 +760,67 @@ class _AddListingPageState extends ConsumerState<AddListingPage> {
               .toList(),
         ),
       ],
+    );
+  }
+}
+
+/// Sahifa tepasidagi brend gradienti — kontekst beradi va boshqa
+/// "usta bo'lish" kabi sahifalar bilan vizual izchillikni saqlaydi.
+class _Hero extends StatelessWidget {
+  const _Hero({required this.s});
+  final AppStrings s;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: AppColors.brandGradient,
+        borderRadius: BorderRadius.circular(AppTheme.radius),
+        boxShadow: [
+          BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.30),
+              blurRadius: 20,
+              offset: const Offset(0, 10)),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.18),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(Icons.add_home_work_rounded,
+                color: Colors.white, size: 24),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(s('estate.add'),
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800)),
+                const SizedBox(height: 3),
+                Text(
+                  "Ma'lumotlarni to'ldiring — e'loningiz moderatsiyadan so'ng chop etiladi",
+                  style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.92),
+                      fontSize: 12,
+                      height: 1.35),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

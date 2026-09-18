@@ -98,28 +98,36 @@ class _RegionDetailPageState extends ConsumerState<RegionDetailPage> {
                   left: 12,
                   right: 12,
                   bottom: 12,
+                  // MUHIM: "Shu hududda qidirish" matni (ayniqsa ru/en'da
+                  // yanada uzunroq) tor `Expanded(flex:1)` ichiga sig'may,
+                  // 2-3 qatorga bo'linib, tugmani cho'zib yuborardi. Endi
+                  // uzunroq matnli tugma ko'proq joy oladi (flex 3:2) va
+                  // matn hech qachon 2-qatorga tushmaydi (`maxLines: 1` +
+                  // kerak bo'lsa "...") — eng kichik telefondan
+                  // planshetgacha bir qatorda, chiroyli sig'adi.
+                  // (Avvalgi `CrossAxisAlignment.stretch` + `FittedBox`
+                  // kombinatsiyasi ba'zi hududlarda tugmalarni
+                  // "ko'rinmas" balandlikka majburlab qo'yayotgan edi —
+                  // shu sabab butunlay olib tashlandi.)
                   child: Row(
                     children: [
                       Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: _searchEstatesHere,
-                          icon: const Icon(Icons.home_work_outlined, size: 18),
-                          label: Text(s('map.search_here')),
-                          style: ElevatedButton.styleFrom(
-                              minimumSize: const Size.fromHeight(46)),
+                        flex: 3,
+                        child: _MapActionButton(
+                          icon: Icons.home_work_outlined,
+                          label: s('map.search_here'),
+                          onTap: _searchEstatesHere,
+                          filled: true,
                         ),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _searchJobsHere,
-                          icon: const Icon(Icons.work_outline_rounded, size: 18),
-                          label: Text(s('cat.jobs')),
-                          style: OutlinedButton.styleFrom(
-                            minimumSize: const Size.fromHeight(46),
-                            backgroundColor:
-                                Theme.of(context).scaffoldBackgroundColor,
-                          ),
+                        flex: 2,
+                        child: _MapActionButton(
+                          icon: Icons.work_outline_rounded,
+                          label: s('cat.jobs'),
+                          onTap: _searchJobsHere,
+                          filled: false,
                         ),
                       ),
                     ],
@@ -182,6 +190,65 @@ class _RegionDetailPageState extends ConsumerState<RegionDetailPage> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Xarita ustidagi harakat tugmalari — matn hech qachon 2-qatorga
+/// tushmaydi: `Flexible` + `maxLines: 1` + kerak bo'lsagina "..." bilan
+/// kesiladi (`FittedBox` asosidagi avvalgi variant ba'zi hollarda
+/// tugmani butunlay noto'g'ri — hatto ko'rinmas — o'lchamga majbur
+/// qilib qo'yayotgan edi, shu sabab soddaroq, ishonchli usulga
+/// almashtirildi).
+class _MapActionButton extends StatelessWidget {
+  const _MapActionButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    required this.filled,
+  });
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final bool filled;
+
+  @override
+  Widget build(BuildContext context) {
+    final fg = filled ? Colors.white : context.colors.onSurface;
+    final content = Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon, size: 17, color: fg),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            softWrap: false,
+            overflow: TextOverflow.ellipsis,
+            style:
+                TextStyle(color: fg, fontWeight: FontWeight.w700, fontSize: 12.5),
+          ),
+        ),
+      ],
+    );
+    return SizedBox(
+      height: 48,
+      child: filled
+          ? ElevatedButton(
+              onPressed: onTap,
+              style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8)),
+              child: content,
+            )
+          : OutlinedButton(
+              onPressed: onTap,
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              ),
+              child: content,
+            ),
     );
   }
 }

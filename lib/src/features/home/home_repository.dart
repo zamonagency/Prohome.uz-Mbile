@@ -128,12 +128,23 @@ class HomeRepository {
       _rawListOf('/banners', auth: false),
       _rawListOf('/home/categories', auth: false),
       _api.get('/home/stats').catchError((_) => <String, dynamic>{}),
+      // Amalda "limitsiz" — bosh sahifa birinchi ochilishida bitta
+      // so'rovda haddan tashqari katta (masalan minglab) javob kelib,
+      // yuklanishni sekinlashtirmasin uchun ancha katta, lekin baribir
+      // chegaralangan qiymat (150) qo'yilgan. Backendda shundan kamroq
+      // e'lon bo'lsa — baribir HAMMASI keladi (chegaraga yetilmaydi).
       _api
-          .get('/real-estates', query: {'page': 1, 'limit': 8, 'sort': 'newest'})
+          .get('/real-estates',
+              query: {'page': 1, 'limit': 150, 'sort': 'newest'})
           .catchError((_) => const {'data': <dynamic>[]}),
       _api
           .get('/real-estates',
-              query: {'page': 1, 'limit': 8, 'dealType': 'RENT', 'sort': 'newest'})
+              query: {
+                'page': 1,
+                'limit': 150,
+                'dealType': 'RENT',
+                'sort': 'newest',
+              })
           .catchError((_) => const {'data': <dynamic>[]}),
       _rawListOf('/masters/top'),
       _api.get('/jobs', query: {'page': 1, 'limit': 6}).catchError((_) => const {'data': <dynamic>[]}),
